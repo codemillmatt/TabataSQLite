@@ -1,20 +1,31 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
-
 using System.Threading;
 using System.Threading.Tasks;
 
+using SQLite.Net.Attributes;
+using SQLite.Net.Interop;
+using SQLite.Net;
+
 namespace TabataPCL
 {
+	[Table ("tabata")]
 	public class Tabata
 	{
 		int _currentWorkSecond;
 		int _currentRestSecond;
 		int _currentSet;
 
-		#region Properties 
+		#region Properties
 
+		[PrimaryKey, AutoIncrement]
+		public int TabataID {
+			get;
+			set;
+		}
+
+		[Column ("rest")]
 		public int RestInterval {
 			get;
 			set;
@@ -34,7 +45,7 @@ namespace TabataPCL
 			get;
 			set;
 		}
-			
+
 		#endregion
 
 		public Tabata ()
@@ -48,10 +59,12 @@ namespace TabataPCL
 			this.RestInterval = restInterval;
 			this.NumberOfSets = numberOfSets;
 
+			this.TabataDate = DateTime.Now;
+
 			_currentSet = 1;
 		}
 
-		public void StartTabata(Action<string> workUpdate, Action<string> restUpdate, Action<bool, int> switchState, Action finishedUpdate)
+		public void StartTabata (Action<string> workUpdate, Action<string> restUpdate, Action<bool, int> switchState, Action finishedUpdate)
 		{		
 			var keepOnLooping = true;
 			var currentState = "work";
@@ -61,7 +74,7 @@ namespace TabataPCL
 			Task.Run (async delegate {
 							
 				while (keepOnLooping) {
-					 await Task.Delay (1000);
+					await Task.Delay (1000);
 						
 				
 					if (currentState.Equals ("work")) {
@@ -74,7 +87,7 @@ namespace TabataPCL
 							currentState = "rest";
 							_currentRestSecond = this.RestInterval;
 							switchState (false, _currentSet);
-							restUpdate(_currentRestSecond.ToString());
+							restUpdate (_currentRestSecond.ToString ());
 						}
 
 					} else {
@@ -82,7 +95,7 @@ namespace TabataPCL
 						_currentRestSecond -= 1;
 
 						// update the display
-						restUpdate (_currentRestSecond.ToString());
+						restUpdate (_currentRestSecond.ToString ());
 
 						if (_currentRestSecond == 0) {
 							currentState = "work";
@@ -94,47 +107,13 @@ namespace TabataPCL
 							} else {
 								_currentWorkSecond = this.WorkInterval;
 								switchState (true, _currentSet);
-								workUpdate(_currentWorkSecond.ToString());
+								workUpdate (_currentWorkSecond.ToString ());
 							}
 						}
 					}
 				}
 				
 			});
-		}
-			
-		public async void SaveTabata(StreamWriter file)
-		{		
-			this.TabataDate = DateTime.Now;
-
-			string tabataInfo = string.Format ("{0},{1},{2},{3}", this.WorkInterval, this.RestInterval,
-				                    this.NumberOfSets, this.TabataDate.ToString ());
-
-			await file.WriteLineAsync (tabataInfo);
-		}
-	}
-
-	public class AllTabatas : List<Tabata>
-	{
-		public void PopulateTabatas(StreamReader sr)
-		{		
-			while (true) {
-				var tabataLine = sr.ReadLine ();
-
-				if (tabataLine != null) {
-					var individParts = tabataLine.Split (new char[] { ',' });
-
-					var t = new Tabata ();  
-					t.WorkInterval = int.Parse (individParts [0]);
-					t.RestInterval = int.Parse (individParts [1]);
-					t.NumberOfSets = int.Parse (individParts [2]);
-					t.TabataDate = DateTime.Parse(individParts[3]);
-							
-					this.Add (t);
-				} else {
-					break;
-				}
-			}				
 		}
 	}
 }

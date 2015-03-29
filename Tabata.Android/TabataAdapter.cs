@@ -16,34 +16,34 @@ namespace Tabata.Android
 {
 	public class TabataAdapter : global::Android.Widget.BaseAdapter<TabataPCL.Tabata>
 	{
-		AllTabatas items;
+		List<TabataPCL.Tabata> items;
 		Activity context;
 
-		public TabataAdapter (Activity context, AllTabatas items) : base() 
+		public TabataAdapter (Activity context, List<TabataPCL.Tabata> items) : base ()
 		{
 			this.context = context;
 			this.items = items;
 		}
 
-		public override long GetItemId(int position)
+		public override long GetItemId (int position)
 		{
 			return position;
 		}
 
-		public override TabataPCL.Tabata this[int position] {  
-			get { return items[position]; }
+		public override TabataPCL.Tabata this [int position] {  
+			get { return items [position]; }
 		}
 
 		public override int Count {
 			get { return items.Count; }
 		}
 
-		public override View GetView(int position, View convertView, ViewGroup parent)
+		public override View GetView (int position, View convertView, ViewGroup parent)
 		{
 			View view = convertView; // re-use an existing view, if one is available
 
 			if (view == null) // otherwise create a new one
-				view = context.LayoutInflater.Inflate(global::Android.Resource.Layout.SimpleListItem2, null);
+				view = context.LayoutInflater.Inflate (global::Android.Resource.Layout.SimpleListItem2, null);
 
 			var currentTabata = items [position];
 

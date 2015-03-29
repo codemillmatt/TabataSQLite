@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,6 +10,10 @@ using Android.OS;
 using Android.Runtime;
 using Android.Views;
 using Android.Widget;
+
+using TabataPCL;
+
+using SQLite.Net.Platform.XamarinAndroid;
 
 
 namespace Tabata.Android
@@ -45,7 +48,7 @@ namespace Tabata.Android
 			_currentTabata.StartTabata (UpdateTimeRemaining, UpdateRestTimeRemaining, SwitchWorkoutStates, FinishedTabata);
 		}
 
-		private void UpdateTimeRemaining(string time)
+		private void UpdateTimeRemaining (string time)
 		{
 			RunOnUiThread (() => {
 				var timeLeftLabel = FindViewById<TextView> (Resource.Id.timeLeft);
@@ -54,7 +57,7 @@ namespace Tabata.Android
 			});
 		}
 
-		private void UpdateRestTimeRemaining(string time)
+		private void UpdateRestTimeRemaining (string time)
 		{
 			RunOnUiThread (() => {
 				var timeLeftLabel = FindViewById<TextView> (Resource.Id.timeLeft);
@@ -63,19 +66,11 @@ namespace Tabata.Android
 			});
 		}
 
-		private string GetFileName() {
-			return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments),"data.csv");
-		}
-
-		private void FinishedTabata()
+		private void FinishedTabata ()
 		{
 			RunOnUiThread (() => {
-				var fileName = this.GetFileName();
-
-				using (var sw = new StreamWriter(fileName, true))
-				{
-					_currentTabata.SaveTabata(sw);
-				}
+				var repo = new TabataRepository (new SQLiteInfo ());
+				repo.InsertTabata (_currentTabata);
 
 				var intent = new Intent (this, typeof(MainActivity));
 
@@ -83,7 +78,7 @@ namespace Tabata.Android
 			});
 		}
 
-		private void SwitchWorkoutStates(bool isWorkoutState, int numberOfCompletedSets)
+		private void SwitchWorkoutStates (bool isWorkoutState, int numberOfCompletedSets)
 		{
 			RunOnUiThread (() => {
 				var workoutStateView = FindViewById<TextView> (Resource.Id.workoutState);

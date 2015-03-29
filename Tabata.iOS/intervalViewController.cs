@@ -5,6 +5,11 @@ using System.CodeDom.Compiler;
 using System.Timers;
 using System.IO;
 
+using SQLite.Net;
+using SQLite.Net.Platform.XamarinIOS;
+
+using TabataPCL;
+
 namespace Tabata.iOS
 {
 	partial class intervalViewController : UIViewController
@@ -13,7 +18,7 @@ namespace Tabata.iOS
 			get;
 			set;
 		}
-			
+
 		public intervalViewController (IntPtr handle) : base (handle)
 		{
 
@@ -32,22 +37,22 @@ namespace Tabata.iOS
 			// Start the Tabata
 			CurrentTabata.StartTabata (DisplayWorkTimeRemaining, DisplayRestTimeRemaining, SwitchViews, FinishedTabata);
 		}
-				
-		private void DisplayWorkTimeRemaining(string timeLeft)
+
+		private void DisplayWorkTimeRemaining (string timeLeft)
 		{
 			InvokeOnMainThread (() => {
 				timeLeftLabel.Text = timeLeft;
 			});
 		}
 
-		private void DisplayRestTimeRemaining(string timeLeft)
+		private void DisplayRestTimeRemaining (string timeLeft)
 		{
 			InvokeOnMainThread (() => {
 				timeLeftLabel.Text = timeLeft;
 			});
 		}
 
-		private void SwitchViews(bool showWork, int numberOfCompletedSets)
+		private void SwitchViews (bool showWork, int numberOfCompletedSets)
 		{
 			InvokeOnMainThread (() => {
 				if (showWork) {
@@ -60,29 +65,16 @@ namespace Tabata.iOS
 				}
 			});
 		}
-			
-		private void FinishedTabata()
+
+		private void FinishedTabata ()
 		{
 			InvokeOnMainThread (() => {
-				// Save the tabatas - create the StreamWriter
-				var fileName = this.GetFileName();
+				var repo = new TabataRepository (new SQLiteInfoIOS ());
 
-				using (var sw = new StreamWriter(fileName, true)) {
-					this.CurrentTabata.SaveTabata(sw);
-				}
-					
+				repo.InsertTabata (this.CurrentTabata);
+
 				this.NavigationController.PopViewControllerAnimated (true);
 			});				
-		}	
-
-		private string GetFileName()
-		{
-			var docPath = MonoTouch.Foundation.NSFileManager.DefaultManager.GetUrls(
-				MonoTouch.Foundation.NSSearchPathDirectory.DocumentDirectory,
-				MonoTouch.Foundation.NSSearchPathDomain.User)[0];
-
-			return Path.Combine(docPath.Path, "data.csv");
 		}
-
 	}
 }

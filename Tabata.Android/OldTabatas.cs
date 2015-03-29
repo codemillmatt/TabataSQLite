@@ -12,28 +12,21 @@ using Android.Views;
 using Android.Widget;
 using System.IO;
 
+using TabataPCL;
+
 namespace Tabata.Android
 {
 	[Activity (Label = "Previous Tabatas")]			
 	public class OldTabatas : ListActivity
 	{
-		private string GetFileName() {
-			return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments),"data.csv");
-		}
-
 		protected override void OnCreate (Bundle bundle)
 		{
 			base.OnCreate (bundle);
 
-			var allTabatas = new TabataPCL.AllTabatas ();
+			var repo = new TabataRepository (new SQLiteInfo ());
 
-			var fileName = GetFileName ();
+			var allTabatas = repo.RetrieveAllTabatas ();
 
-			// Create your application here
-			using (var sr = new StreamReader (fileName)) {			
-				allTabatas.PopulateTabatas (sr);
-			}
-				
 			ListAdapter = new TabataAdapter (this, allTabatas);
 				
 		}

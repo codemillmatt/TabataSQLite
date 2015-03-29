@@ -3,24 +3,30 @@ using MonoTouch.UIKit;
 using System;
 using System.CodeDom.Compiler;
 using System.IO;
+using System.Collections.Generic;
+
+using SQLite.Net;
+using SQLite.Net.Platform.XamarinIOS;
+
+using TabataPCL;
 
 namespace Tabata.iOS
 {
 	partial class historyViewController : UITableViewController
 	{
-		TabataPCL.AllTabatas _allTabatas;
-
 		public historyViewController (IntPtr handle) : base (handle)
 		{
 		}
 
-		private string GetFileName()
+		public override void ViewDidAppear (bool animated)
 		{
-			var docPath = MonoTouch.Foundation.NSFileManager.DefaultManager.GetUrls(
-				MonoTouch.Foundation.NSSearchPathDirectory.DocumentDirectory,
-				MonoTouch.Foundation.NSSearchPathDomain.User)[0];
+			base.ViewDidAppear (animated);
 
-			return Path.Combine(docPath.Path, "data.csv");
+			var repo = new TabataRepository (new SQLiteInfoIOS ());
+
+			this.TableView.Source = new TabataSource (repo.RetrieveAllTabatas ());
+
+			this.TableView.ReloadData ();
 		}
 
 		public override void ViewDidLoad ()
@@ -28,25 +34,15 @@ namespace Tabata.iOS
 			base.ViewDidLoad ();
 
 			this.TableView.ContentInset = new UIEdgeInsets (20, 0, 0, 0);
-
-			var fileName = this.GetFileName ();
-
-			_allTabatas = new TabataPCL.AllTabatas ();
-
-			using (var sr = new StreamReader (fileName)) {
-				_allTabatas.PopulateTabatas (sr);
-			}				
-
-			this.TableView.Source = new TabataSource (_allTabatas);
 		}
 	}
 
 	public class TabataSource : UITableViewSource
 	{
 		string _cellIdentifer = "cell";
-		TabataPCL.AllTabatas _allTabatas;
+		List<TabataPCL.Tabata> _allTabatas;
 
-		public TabataSource (TabataPCL.AllTabatas tabatas)
+		public TabataSource (List<TabataPCL.Tabata> tabatas)
 		{
 			_allTabatas = tabatas;
 		}
