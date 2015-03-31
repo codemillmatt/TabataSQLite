@@ -9,12 +9,13 @@ namespace TabataPCL
 {
 	public class TabataRepository : IDisposable
 	{
-		private SQLiteConnectionWithLock _db;
+		private SQLiteConnection _db;
+		private object lockGuard = new object();
 
 		public TabataRepository (IDataPlatform dbInfo)
 		{
 			if (_db == null) {
-				_db = new SQLiteConnectionWithLock (dbInfo.SQLitePlatform, new SQLiteConnectionString (dbInfo.DBFile, true));
+				_db = new SQLiteConnection (dbInfo.SQLitePlatform, dbInfo.DBFile, true);
 
 				// Create the tabata table - if the table already exists, won't recreate it
 				_db.CreateTable<Tabata> ();
@@ -23,11 +24,13 @@ namespace TabataPCL
 
 		public void InsertTabata (Tabata tabataToInsert)
 		{
-			_db.Insert (tabataToInsert);
+			lock (lockGuard) {
+				_db.Insert (tabataToInsert);
+			}
 		}
 
 		public List<Tabata> RetrieveAllTabatas ()
-		{
+		{			
 			return _db.Table<Tabata> ().ToList ();
 		}
 

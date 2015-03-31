@@ -41,6 +41,7 @@ namespace TabataPCL
 			set;
 		}
 
+		[Unique]
 		public DateTime TabataDate {
 			get;
 			set;
